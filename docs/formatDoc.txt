@@ -1,0 +1,36 @@
+﻿// ------------- mls -------------
+pointers:	relative in rom
+-------------
+header:		flag						16-bit			unsigned
+			trackPointers[]				16-bit			unsigned
+-------------
+events:		name:						param_length:
+0x00		Extended note				8-bit	8-bit
+0xF0		instrument					8-bit
+0xF1		volume						8-bit
+0xF2		panning						8-bit
+0xF6		rest						8-bit
+0xF8		loop						16-bit
+0xF9		tempo						8-bit
+0xFA >		end of track
+
+// ------------- bkg -------------
+pointers:	absolute in rom
+-------------
+header:		trackCount					32-bit			unsigned
+			??							32-bit
+			pointerToTrackPointers		32-bit			unsigned
+			??							32-bit
+			??							32-bit
+-------------
+events:		name:						param_length:
+0x00		tempo						24-bit
+0x01		rest						8-bit
+0x02		rest						16-bit
+0x03		rest						24-bit
+0x05		note on						8-bit	8-bit
+0x06		note off					8-bit	8-bit	
+0x07		volume(got more functions)	8-bit	8-bit
+0x08		instrument					8-bit
+0x0A		pitch						8-bit
+0x0B		end of track

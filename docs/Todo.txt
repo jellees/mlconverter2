@@ -1,0 +1,18 @@
+﻿
+---- stuff to do ----
+
+- fix "loaded" labels
+- fix - bkg to midi - pitch change command
+- fix - mls to midi - change to track volume instead of note volume
+
+---- features to add ----
+
+- track - transpose all notes
+- track - delete track
+- track - add track
+- ROM - mls - insert into rom
+
+---- research stuff ----
+
+- soundfont M&LSS
+- soundfont BKGR
