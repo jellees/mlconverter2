@@ -39,8 +39,17 @@
             this.mIDIToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mIDIToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.trackToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addTrackToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteTrackToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.searchToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.transposeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rOMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openSequencesListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.soundFontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.insertIntoRomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.exportAllMidiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.status = new System.Windows.Forms.StatusStrip();
             this.seqLoadedlbl = new System.Windows.Forms.ToolStripStatusLabel();
@@ -63,8 +72,6 @@
             this.addEventbtn = new System.Windows.Forms.Button();
             this.eventListbox = new System.Windows.Forms.ListBox();
             this.eventListlbl = new System.Windows.Forms.Label();
-            this.soundFontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.dumpAllSamplesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menu.SuspendLayout();
             this.status.SuspendLayout();
             this.trackgbx.SuspendLayout();
@@ -79,6 +86,7 @@
             // 
             this.menu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
+            this.trackToolStripMenuItem,
             this.rOMToolStripMenuItem});
             this.menu.Location = new System.Drawing.Point(0, 0);
             this.menu.Name = "menu";
@@ -139,7 +147,6 @@
             // 
             this.importToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mIDIToolStripMenuItem1});
-            this.importToolStripMenuItem.Enabled = false;
             this.importToolStripMenuItem.Name = "importToolStripMenuItem";
             this.importToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
             this.importToolStripMenuItem.Text = "Import";
@@ -167,12 +174,60 @@
             this.mIDIToolStripMenuItem.Text = "MIDI";
             this.mIDIToolStripMenuItem.Click += new System.EventHandler(this.mIDIToolStripMenuItem_Click);
             // 
+            // trackToolStripMenuItem
+            // 
+            this.trackToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addTrackToolStripMenuItem,
+            this.deleteTrackToolStripMenuItem,
+            this.toolStripSeparator3,
+            this.searchToolStripMenuItem,
+            this.transposeToolStripMenuItem});
+            this.trackToolStripMenuItem.Enabled = false;
+            this.trackToolStripMenuItem.Name = "trackToolStripMenuItem";
+            this.trackToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
+            this.trackToolStripMenuItem.Text = "Track";
+            // 
+            // addTrackToolStripMenuItem
+            // 
+            this.addTrackToolStripMenuItem.Name = "addTrackToolStripMenuItem";
+            this.addTrackToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.addTrackToolStripMenuItem.Text = "Add Track";
+            this.addTrackToolStripMenuItem.Click += new System.EventHandler(this.addTrackToolStripMenuItem_Click);
+            // 
+            // deleteTrackToolStripMenuItem
+            // 
+            this.deleteTrackToolStripMenuItem.Name = "deleteTrackToolStripMenuItem";
+            this.deleteTrackToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.deleteTrackToolStripMenuItem.Text = "Delete Track";
+            this.deleteTrackToolStripMenuItem.Click += new System.EventHandler(this.deleteTrackToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(149, 6);
+            // 
+            // searchToolStripMenuItem
+            // 
+            this.searchToolStripMenuItem.Name = "searchToolStripMenuItem";
+            this.searchToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.searchToolStripMenuItem.Text = "Search...";
+            this.searchToolStripMenuItem.Visible = false;
+            // 
+            // transposeToolStripMenuItem
+            // 
+            this.transposeToolStripMenuItem.Name = "transposeToolStripMenuItem";
+            this.transposeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.transposeToolStripMenuItem.Text = "Transpose";
+            this.transposeToolStripMenuItem.Click += new System.EventHandler(this.transposeToolStripMenuItem_Click);
+            // 
             // rOMToolStripMenuItem
             // 
             this.rOMToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openSequencesListToolStripMenuItem,
-            this.exportAllMidiToolStripMenuItem,
-            this.soundFontToolStripMenuItem});
+            this.soundFontToolStripMenuItem,
+            this.insertIntoRomToolStripMenuItem,
+            this.toolStripSeparator2,
+            this.exportAllMidiToolStripMenuItem});
             this.rOMToolStripMenuItem.Enabled = false;
             this.rOMToolStripMenuItem.Name = "rOMToolStripMenuItem";
             this.rOMToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
@@ -184,6 +239,25 @@
             this.openSequencesListToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
             this.openSequencesListToolStripMenuItem.Text = "Open Seq List";
             this.openSequencesListToolStripMenuItem.Click += new System.EventHandler(this.openSequencesListToolStripMenuItem_Click);
+            // 
+            // soundFontToolStripMenuItem
+            // 
+            this.soundFontToolStripMenuItem.Name = "soundFontToolStripMenuItem";
+            this.soundFontToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
+            this.soundFontToolStripMenuItem.Text = "SoundFont";
+            this.soundFontToolStripMenuItem.Click += new System.EventHandler(this.soundFontToolStripMenuItem_Click);
+            // 
+            // insertIntoRomToolStripMenuItem
+            // 
+            this.insertIntoRomToolStripMenuItem.Name = "insertIntoRomToolStripMenuItem";
+            this.insertIntoRomToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
+            this.insertIntoRomToolStripMenuItem.Text = "Insert Into Rom";
+            this.insertIntoRomToolStripMenuItem.Click += new System.EventHandler(this.insertIntoRomToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(165, 6);
             // 
             // exportAllMidiToolStripMenuItem
             // 
@@ -413,21 +487,6 @@
             this.eventListlbl.TabIndex = 0;
             this.eventListlbl.Text = "Event List:";
             // 
-            // soundFontToolStripMenuItem
-            // 
-            this.soundFontToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.dumpAllSamplesToolStripMenuItem});
-            this.soundFontToolStripMenuItem.Name = "soundFontToolStripMenuItem";
-            this.soundFontToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
-            this.soundFontToolStripMenuItem.Text = "SoundFont";
-            // 
-            // dumpAllSamplesToolStripMenuItem
-            // 
-            this.dumpAllSamplesToolStripMenuItem.Name = "dumpAllSamplesToolStripMenuItem";
-            this.dumpAllSamplesToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
-            this.dumpAllSamplesToolStripMenuItem.Text = "Dump All Samples";
-            this.dumpAllSamplesToolStripMenuItem.Click += new System.EventHandler(this.dumpAllSamplesToolStripMenuItem_Click);
-            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -497,7 +556,14 @@
         private System.Windows.Forms.ToolStripMenuItem openSequencesListToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exportAllMidiToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem soundFontToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem dumpAllSamplesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem trackToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem addTrackToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem deleteTrackToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.ToolStripMenuItem searchToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem transposeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem insertIntoRomToolStripMenuItem;
     }
 }
 

@@ -1,18 +1,17 @@
 ﻿
 ---- stuff to do ----
 
-- fix "loaded" labels
-- fix - bkg to midi - pitch change command
 - fix - mls to midi - change to track volume instead of note volume
 
 ---- features to add ----
 
 - track - transpose all notes
-- track - delete track
-- track - add track
+- track - find event
 - ROM - mls - insert into rom
+- import - import from midi to mls
+- import - import from midi to bkg
 
 ---- research stuff ----
 
-- soundfont M&LSS
-- soundfont BKGR
+- soundfont M&LSS // only know to find samples, but weird sample rate value?
+- soundfont BKGR  // being done

@@ -154,6 +154,7 @@ namespace mlconverter2
             }
             else if (format == 1)
             {
+                if (track == 0) track++;
                 switch (index)
                 {
                     case 0: ret = 0x00; break;
@@ -170,7 +171,9 @@ namespace mlconverter2
             }
             else MessageBox.Show("returnStatusValues missing for this format");
 
-            return ret;
+            int yi = Math.Abs(ret);
+
+            return Math.Abs(ret);
         }
     }
 

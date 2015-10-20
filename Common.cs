@@ -9,8 +9,10 @@ namespace mlconverter2
     class Common
     {
         // a class with usefull functions
-        
-        // reads a ushort bit formatted flag and returns the count
+
+        /// <summary>
+        /// reads a ushort bit formatted flag and returns the count
+        /// </summary>
         static public int countFlag(ushort flag)
         {
             int count = 0;
@@ -23,7 +25,9 @@ namespace mlconverter2
             return count;
         }
 
-        // returns a ushort bit formatted flag
+        /// <summary>
+        /// returns a ushort bit formatted flag
+        /// </summary>
         static public ushort getFlag(int count, int shift = 0)
         {
             ushort flag = 0;
@@ -37,7 +41,9 @@ namespace mlconverter2
             return flag <<= shift;
         }
 
-        // repairs a pointer
+        /// <summary>
+        /// repairs a pointer
+        /// </summary>
         static public int repairPointer(int pointer)
         {
             pointer <<= 8;
@@ -45,7 +51,9 @@ namespace mlconverter2
             return Math.Abs(pointer);
         }
 
-        // writes a VLV into a binary writer stream
+        /// <summary>
+        /// writes a VLV into a binary writer stream
+        /// </summary>
         static public void toVLV(uint value, BinaryWriter file)
         {
             uint buffer;
@@ -63,6 +71,41 @@ namespace mlconverter2
                 if (Convert.ToBoolean(buffer & 0x80)) buffer >>= 8;
                 else break;
             }
+        }
+
+        /// <summary>
+        /// converts a VLV to normal
+        /// </summary>
+        static public int fromVLV(int vlv)
+        {
+            int number;
+
+            number = (vlv & 0x7F000000) >> 24;
+            number = (number << 7) + ((vlv & 0x7F0000) >> 16);
+            number = (number << 7) + ((vlv & 0x7F00) >> 8);
+            number = (number << 7) + (vlv & 0x7F);
+
+            return number;
+        }
+
+        /// <summary>
+        /// reads a VLV from a string
+        /// </summary>
+        static public int readVLV(BinaryReader file)
+        {
+            int delta = 0;
+
+            while (true)
+            {
+                delta += file.ReadByte();
+                if ((delta & 0x80) == 0x80)
+                {
+                    delta <<= 8;
+                }
+                else break;
+            }
+
+            return delta;
         }
     }
 }

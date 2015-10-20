@@ -62,13 +62,32 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="bkgr\SoundfontBKGR.cs" />
+    <Compile Include="bkgr\SoundfontViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="bkgr\SoundfontViewer.Designer.cs">
+      <DependentUpon>SoundfontViewer.cs</DependentUpon>
+    </Compile>
     <Compile Include="Common.cs" />
     <Compile Include="Endian.cs" />
+    <Compile Include="ImportMidi.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ImportMidi.Designer.cs">
+      <DependentUpon>ImportMidi.cs</DependentUpon>
+    </Compile>
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Main.Designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MIDI.cs" />
+    <Compile Include="mlss\Inserter.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="mlss\Inserter.Designer.cs">
+      <DependentUpon>Inserter.cs</DependentUpon>
     </Compile>
     <Compile Include="Music.cs" />
     <Compile Include="Program.cs" />
@@ -81,8 +100,23 @@
       <DependentUpon>RomViewer.cs</DependentUpon>
     </Compile>
     <Compile Include="Strings.cs" />
+    <Compile Include="Transpose.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Transpose.Designer.cs">
+      <DependentUpon>Transpose.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="bkgr\SoundfontViewer.resx">
+      <DependentUpon>SoundfontViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ImportMidi.resx">
+      <DependentUpon>ImportMidi.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="mlss\Inserter.resx">
+      <DependentUpon>Inserter.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -95,6 +129,9 @@
     </Compile>
     <EmbeddedResource Include="RomViewer.resx">
       <DependentUpon>RomViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Transpose.resx">
+      <DependentUpon>Transpose.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

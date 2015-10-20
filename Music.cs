@@ -83,6 +83,18 @@ namespace mlconverter2
             events[this.activeTrack].Insert(this.activeEvent + 1, item);
         }
 
+        public void removeTrack()
+        {
+            events.RemoveAt(this.activeTrack);
+            trackCount = events.Count;
+        }
+
+        public void addTrack(List<List<int>> track)
+        {
+            events.Add(track);
+            trackCount = events.Count;
+        }
+
         #region open functions
 
         public void openFile(BinaryReader file)
@@ -109,7 +121,7 @@ namespace mlconverter2
             pointers = new int[trackCount];
             for (int i = 0; i < trackCount; i++) pointers[i] = file.ReadUInt16();
 
-            events = new List<List<List<int>>>();
+            events = new List<List<List<int>>>(); //! this is very important to include
 
             // read events
             for (int i = 0; i < trackCount; i++ )
@@ -450,7 +462,12 @@ namespace mlconverter2
                                 file.Write(Convert.ToByte(events[i][j][1])); 
                                 rest = 0; break;
 
-                        case 0x0A: break; // pitch change, don't know how that works yet
+                        case 0x0A: 
+                                Common.toVLV((uint)rest * 2, file);
+                                file.Write(Convert.ToByte(0xE0 + (i - 1)));
+                                file.Write(Convert.ToByte(0x00));
+                                file.Write(Convert.ToByte(events[i][j][1] / 0x80));
+                                rest = 0; break; // pitch change, don't know how that works yet
                         case 0x0B: file.Write(Convert.ToByte(0x0));
                                 file.Write(Convert.ToByte(0xFF));
                                 file.Write(Convert.ToByte(0x2F));
@@ -466,6 +483,209 @@ namespace mlconverter2
                 file.Write(Endian.SwapEndian32(trackLength - 4));
                 file.BaseStream.Position = originalPos;
             }
+        }
+
+        #endregion
+
+        #region import from midi functions
+
+        public void fromMidi(BinaryReader file, int headerTracks)
+        {
+            if (format == 0xff) throw new ArgumentException("A format is not specified.", "format");
+
+            switch (this.format)
+            {
+                case 0x00: fromMidiMls(file, headerTracks); break;
+                case 0x01: fromMidiBkg(file, headerTracks); break;
+                default: break;
+            }
+
+            file.Close();
+        }
+
+        private void fromMidiMls(BinaryReader file, int headerTracks)
+        {
+            events = new List<List<List<int>>>();
+            MIDI mid = new MIDI(file);
+            int tempo = 0;
+
+            trackCount = mid.TrackCount - headerTracks;
+
+            // search in header tracks for tempo 
+            for (int i = 0; i < headerTracks; i++ )
+            {
+                mid.TrackPosition = i;
+                int[] status;
+
+                while (true)
+                {
+                    status = mid.read();
+                    status = mid.read();
+
+                    if (status[0] == 0xFF)
+                    {
+                        // forgot why to divide by 2, maybe because it would go too fast otherwise
+                        if (status[1] == 0x51) tempo = (60000000 / ((status[3] << 16) + (status[4] << 8) + (status[5])));
+                        else if (status[1] == 0x2F) break;
+                    }
+                }
+            }
+            
+            // read the other tracks
+            for (int i = headerTracks; i < mid.TrackCount; i++)
+            {
+                int pos = i - headerTracks;
+                mid.TrackPosition = i;
+                events.Add(new List<List<int>>());
+                bool endOfTrack = false;
+                int[] status;
+                int rest = 0;
+                int note = 0;
+                int noteLength = 0;
+                int noteVolume = 0;
+                int trkVolume = 0;
+                int volume = 0;
+
+                // always first the tempo to play safe
+                if (tempo == 0) events[pos].Add(new List<int> { 0xF9, 0x78 });
+                else events[pos].Add(new List<int> { 0xF9, tempo });
+
+                while (!endOfTrack)
+                {
+                    rest = mid.read()[0] / (mid.Devision / 0x28);
+
+                    if (note != 0) noteLength += rest;
+                    if (rest != 0 && note == 0)
+                        while (true)
+                            if (rest > 0x90) { events[pos].Add(new List<int> { 0xF6, 0x90 }); rest -= 0x90; }
+                            else { events[pos].Add(new List<int> { 0xF6, rest }); rest = 0; break; }
+
+                    status = mid.read();
+
+                    switch (status[0] & 0xF0)
+                    {
+                        case 0x90: if (note == 0) { note = status[1]; noteLength = 0; } // note on
+                                else if (status[2] == 0) goto noteOff;
+                                break;
+                        case 0x80: noteOff: 
+                                    if (note == status[1])   // note off
+                                    {
+                                        // write volume changes
+                                        noteVolume = status[2];
+                                        int newVolume = (noteVolume + trkVolume) / 2;
+                                        if (volume != newVolume)
+                                        {
+                                            volume = newVolume;
+                                            events[pos].Add(new List<int> { 0xF1, volume });
+                                        }
+                                        
+                                        // write note/notes
+                                        while (true)
+                                            if (noteLength > 0x90) { events[pos].Add(new List<int> { 0x00, note + 0x80, 0x90 }); noteLength -= 0x90; }
+                                            else { events[pos].Add(new List<int> { noteLength, note }); break; }
+                                        note = 0;
+                                    } break;
+                        case 0xB0: if (status[1] == 0x07) trkVolume = status[2]; break; // channel volume
+                        case 0xC0: events[pos].Add(new List<int> { 0xF0, status[1] }); break;
+                        case 0xF0: if (status[1] == 0x2F) { events[pos].Add(new List<int> { 0xFF }); endOfTrack = true; }  // end of track
+                                    else if (status[1] == 0x51) events[pos].Add(new List<int> { 0xF9, (60000000 / ((status[3] << 16) + (status[4] << 8) + (status[5])))});
+                                    break;
+                    }
+                }
+            }
+        }
+
+        private void fromMidiBkg(BinaryReader file, int headerTracks)
+        {
+            events = new List<List<List<int>>>();
+            MIDI mid = new MIDI(file);
+
+            trackCount = mid.TrackCount;
+
+            for (int i = 0; i < trackCount; i++)
+            {
+                int channelNumber;
+                if (i > headerTracks) channelNumber = i - headerTracks;
+                else channelNumber = 0;
+                
+                mid.TrackPosition = i;
+                events.Add(new List<List<int>>());
+                bool endOfTrack = false;
+
+                while (!endOfTrack)
+                {
+                    int rest = 0;
+                    if (mid.Devision != 0) rest = mid.read()[0] / mid.Devision;
+                    else rest = mid.read()[0];
+
+                    if (rest > 0x00 && rest <= 0xFF) events[i].Add(new List<int> { 0x01, rest }); // 8-bit rest
+                    if (rest > 0xFF && rest <= 0xFFFF) events[i].Add(new List<int> { 0x02, rest }); // 16-bit rest
+                    if (rest > 0xFFFF && rest <= 0xFFFFFF) events[i].Add(new List<int> { 0x03, rest }); // 16-bit rest
+                    if (rest > 0xFFFFFF) MessageBox.Show("delta time larger than 0xFFFFFF, not used");
+
+                    int[] status = mid.read();
+
+                    switch(status[0] & 0xF0)
+                    {
+                        case 0x80: events[i].Add(new List<int> { (channelNumber << 4) + 0x06, status[1], status[2] }); break; // note off
+                        case 0x90: events[i].Add(new List<int> { (channelNumber << 4) + 0x05, status[1], status[2] }); break; // note on
+                        case 0xB0: if (status[1] == 0x07) events[i].Add(new List<int> { (channelNumber << 4) + 0x07, status[1], status[2] }); break; // channel volume
+                        case 0xC0: events[i].Add(new List<int> { (channelNumber << 4) + 0x08, status[1] }); break; // instrument
+                        case 0xE0: events[i].Add(new List<int> { (channelNumber << 4) + 0x0A, status[2] * 0x80 }); break; // pitch bend
+                        case 0xF0: if (status[1] == 0x2F) { events[i].Add(new List<int> { 0x0B }); endOfTrack = true; } // end of track
+                            else if (status[1] == 0x51) { events[i].Add(new List<int> { 0x00, (status[3] << 16) + (status[4] << 8) + (status[5]) }); } // tempo
+                            break;
+                    }
+                }
+            }
+
+            mid.close();
+        }
+
+        #endregion
+
+        #region transpose functions
+
+        public void transpose(int trans)
+        {
+            switch (this.format)
+            {
+                case 0x00: transposeMls(trans); break;
+                default: MessageBox.Show("Don't do transpose stuff on this format"); break;
+            }
+        }
+
+        private void transposeMls(int trans)
+        {
+            bool testResult = true;
+
+            // test it first
+            for (int i = 0; i < events[activeTrack].Count; i++ )
+            {
+                if (events[activeTrack][i][0] > 0 && events[activeTrack][i][0] < 0xF0)
+                {
+                    int test = events[activeTrack][i][1];
+                    test = test + trans;
+                    if (test == 0 || test >= 0xF0)
+                    {
+                        testResult = false;
+                        break;
+                    }
+                }
+            }
+
+            if (testResult)
+            {
+                for (int i = 0; i < events[activeTrack].Count; i++)
+                {
+                    if (events[activeTrack][i][0] > 0 && events[activeTrack][i][0] < 0xF0)
+                    {
+                        int test = events[activeTrack][i][1];
+                        events[activeTrack][i][1] = test + trans;
+                    }
+                }
+            }
+            else MessageBox.Show("Cannot transpose this high or this low");
         }
 
         #endregion

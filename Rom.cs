@@ -14,7 +14,7 @@ namespace mlconverter2
         
         // ---- variables ----
 
-        int romFormat;
+        int romFormat = -1;
         int songCount;
         int pointersPointer;
         int activeSong;

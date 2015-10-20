@@ -22,10 +22,11 @@ namespace mlconverter2
 
         Music music = new Music();
         Rom rom = new Rom();
-        bkgr.SoundfontBKGR soundFont = new bkgr.SoundfontBKGR(); // temporary? want this actually to be in its own little editor
         bool updateEvent = true;
+        bool updateCmb = true;
 
         RomViewer romViewer;
+        bkgr.SoundfontViewer bkgrSoundfontViewer;
         
         // ---- control functions ----
 
@@ -80,16 +81,30 @@ namespace mlconverter2
 
             setupMusic();
         }
+
+        private void openFromMidi(string name, int format, int headerTracks)
+        {
+            switch (format)
+            {
+                case (int)Game.mlss: music.Format = (byte)Format.mls; break;
+                case (int)Game.bkgr: music.Format = (byte)Format.bkg; break;
+                default: MessageBox.Show("Not supported format"); break;
+            }
+
+            music.Path = null;
+            music.Name = Path.GetFileName(name);
+            music.fromMidi(new BinaryReader(new FileStream(name, FileMode.Open)), headerTracks);
+
+            setupMusic();
+        }
         
         // setup everything after loading the music
         private void setupMusic()
         {
-            // clear everything first
-            trackListbox.Items.Clear();
-            
             enableControls(true);
 
             // setup event options
+            eventcmb.Items.Clear();
             switch (music.Format)
             {
                 case 0x00: eventcmb.Items.AddRange(StaticDataControl.returnEventOptions(0)); break;
@@ -98,26 +113,32 @@ namespace mlconverter2
             }
             
             // start with track list
-            for (int i = 0; i < music.TrackCount; i++) trackListbox.Items.Add("track " + i.ToString());
-            trackListbox.SelectedIndex = 0;
+            setupTracks();
 
             // setup track
-            setupTrack(0);
+            setupEvents(0);
 
-            // setup event 1
+            // setup event 0
             setupEvent(0);
 
             // tell that we have loaded a sequence
-            seqLoadedlbl.Text = "Sequence loaded [" + music.Name + "]";
+            updateLabelStatus();
 
             // enable stuff
-            saveFileToolStripMenuItem.Enabled = true;
-            saveFileAsToolStripMenuItem.Enabled = true;
-            exportToolStripMenuItem.Enabled = true;
+            prepareProgram();
+        }
+
+        // setup all tracks
+        private void setupTracks()
+        {
+            trackListbox.Items.Clear();
+            for (int i = 0; i < music.TrackCount; i++) trackListbox.Items.Add("track " + i.ToString());
+            if (trackListbox.Items.Count > 0) trackListbox.SelectedIndex = 0;
+            else eventListbox.Items.Clear();
         }
 
         // setup a track, Warning: activeEvent is random
-        private void setupTrack(int track)
+        private void setupEvents(int track)
         {
             eventListbox.Items.Clear();
 
@@ -145,6 +166,7 @@ namespace mlconverter2
         // setup event controllers
         private void setupEventControllers(int[] data)
         {
+            updateCmb = false;
             eventcmb.SelectedIndex = data[0];
             valuenum.Value = data[1];
             valuenum.Enabled = Convert.ToBoolean(data[2]);
@@ -156,6 +178,67 @@ namespace mlconverter2
             parameter2num.Maximum = data[8];
             parameter2num.Value = data[6];
             parameter2num.Enabled = Convert.ToBoolean(data[7]);
+            updateCmb = true;
+        }
+
+        private void updateLabelStatus()
+        {
+            if (rom.Path == null) romLoadedlbl.Text = "no ROM loaded";
+            else romLoadedlbl.Text = "ROM loaded [" + Path.GetFileName(rom.Path) + "]";
+
+            if (music.Name == null) seqLoadedlbl.Text = "no sequence loaded";
+            else seqLoadedlbl.Text = "Sequence loaded [" + music.Name + "]";
+        }
+
+        // prepare the program depending on formats
+        private void prepareProgram()
+        {
+            // prepare file tab
+            switch(music.Format)
+            {
+                case 0x00:
+                    saveFileToolStripMenuItem.Enabled = true;
+                    saveFileAsToolStripMenuItem.Enabled = true;
+                    exportToolStripMenuItem.Enabled = true;
+                    trackToolStripMenuItem.Enabled = true;
+                    break;
+                case 0x01:
+                    saveFileToolStripMenuItem.Enabled = true;
+                    saveFileAsToolStripMenuItem.Enabled = true;
+                    exportToolStripMenuItem.Enabled = true;
+                    trackToolStripMenuItem.Enabled = true;
+                    break;
+                default:
+                    saveFileToolStripMenuItem.Enabled = false;
+                    saveFileAsToolStripMenuItem.Enabled = false;
+                    exportToolStripMenuItem.Enabled = false;
+                    trackToolStripMenuItem.Enabled = false;
+                    break;
+            }
+
+            // prepare ROM tab
+            switch (rom.RomFormat)
+            {
+                case 0x00:
+                    rOMToolStripMenuItem.Enabled = true;
+                    openSequencesListToolStripMenuItem.Enabled = true;
+                    exportAllMidiToolStripMenuItem.Enabled = true;
+                    soundFontToolStripMenuItem.Visible = false;
+                    break;
+                case 0x01:
+                    rOMToolStripMenuItem.Enabled = true;
+                    openSequencesListToolStripMenuItem.Enabled = true;
+                    exportAllMidiToolStripMenuItem.Enabled = true;
+                    soundFontToolStripMenuItem.Visible = true;
+                    break;
+                default:
+                    rOMToolStripMenuItem.Enabled = false;
+                    break;
+            }
+
+            // prepare other stuff
+            if (rom.RomFormat == (int)Game.mlss && music.Format == (int)Format.mls) insertIntoRomToolStripMenuItem.Enabled = true;
+            else insertIntoRomToolStripMenuItem.Enabled = false;
         }
 
         // ---- misc functions ----
@@ -168,7 +251,9 @@ namespace mlconverter2
                 case (int)Game.bkgr: music.Format = (byte)Format.bkg; break;
                 default: MessageBox.Show("Not supported format"); break;
             }
-            
+
+            Music backup = music;
+
             for (int i = 0; i < rom.SongCount; i++)
             {
                 rom.ActiveSong = i;
@@ -178,13 +263,17 @@ namespace mlconverter2
                 if(music.TrackCount != 0) // quick fix to fix the "no music" sequence from marioluigiss
                     music.toMidi(new BinaryWriter(File.OpenWrite(path + "\\sequence" + i.ToString("D3") + ".mid")));
             }
+
+            music = backup;
         }
 
-        private void exportAllToSample(string path)
+        public static void ReplaceData(string filename, int position, byte[] data)
         {
-            for (int i = 0; i < 0x90; i++)
+            using (Stream stream = File.Open(filename, FileMode.Open))
             {
-                soundFont.sampleToWave(new BinaryReader(new FileStream(rom.Path, FileMode.Open)), new BinaryWriter(File.OpenWrite(path + "\\sample" + i.ToString("D3") + ".wav")), i);
+                stream.Position = position;
+                stream.Write(data, 0, data.Length);
+                stream.Close();
             }
         }
 
@@ -199,7 +288,8 @@ namespace mlconverter2
 
         private void trackListbox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            setupTrack(trackListbox.SelectedIndex);
+            setupEvents(trackListbox.SelectedIndex);
+            if (music.ActiveEvent > eventListbox.Items.Count) music.ActiveEvent = eventListbox.Items.Count -1;
         }
 
         private void eventListbox_SelectedIndexChanged(object sender, EventArgs e)
@@ -209,33 +299,40 @@ namespace mlconverter2
 
         private void eventcmb_SelectedIndexChanged(object sender, EventArgs e)
         {
-            List<int> pre = new List<int> { StaticDataControl.returnStatusValues(eventcmb.SelectedIndex, music.Format, music.ActiveTrack), 0, 0 };
-            setupEventControllers(StaticDataControl.returnControlData(pre, music.Format));
+            if (updateCmb)
+            {
+                List<int> pre = new List<int> { StaticDataControl.returnStatusValues(eventcmb.SelectedIndex, music.Format, music.ActiveTrack), 0, 0 };
+                setupEventControllers(StaticDataControl.returnControlData(pre, music.Format));
+            }
         }
 
         private void updateEventbtn_Click(object sender, EventArgs e)
         {
-            int[] controlData = StaticDataControl.returnControlData(new List<int> { StaticDataControl.returnStatusValues(eventcmb.SelectedIndex, music.Format, music.ActiveTrack), 0, 0 }, music.Format);
-            List<int> pre = new List<int>();
-
-            pre.Add((int)valuenum.Value);
-            if (Convert.ToBoolean(controlData[4]))
+            if (music.ActiveEvent != -1)
             {
-                pre.Add((int)parameter1num.Value);
+                int[] controlData = StaticDataControl.returnControlData(new List<int> { StaticDataControl.returnStatusValues(eventcmb.SelectedIndex, music.Format, music.ActiveTrack), 0, 0 }, music.Format);
+                List<int> pre = new List<int>();
+
+                pre.Add((int)valuenum.Value);
+                if (Convert.ToBoolean(controlData[4]))
+                {
+                    pre.Add((int)parameter1num.Value);
+                }
+                if (Convert.ToBoolean(controlData[7]))
+                {
+                    pre.Add((int)parameter2num.Value);
+                }
+
+                music.Event = pre;
+
+                int Y = eventListbox.TopIndex;
+                int activeEvent = music.ActiveEvent;
+
+                setupEvents(music.ActiveTrack);
+
+                eventListbox.TopIndex = Y;
+                eventListbox.SetSelected(activeEvent, true);
             }
-            if (Convert.ToBoolean(controlData[7]))
-            {
-                pre.Add((int)parameter2num.Value);
-            }
-
-            music.Event = pre;
-
-            int activeEvent = music.ActiveEvent;
-
-            setupTrack(music.ActiveTrack);
-            //setupEvent(activeEvent);
-
-            eventListbox.SetSelected(activeEvent, true);
         }
 
         private void addEventbtn_Click(object sender, EventArgs e)
@@ -256,6 +353,7 @@ namespace mlconverter2
                 if (eventListbox.Items.Count > 0)
                     if (music.ActiveEvent < eventListbox.Items.Count) eventListbox.SetSelected(music.ActiveEvent, true);
                     else eventListbox.SetSelected(music.ActiveEvent - 1, true);
+                else music.ActiveEvent = -1;
             }
         }
 
@@ -292,7 +390,7 @@ namespace mlconverter2
                 music.Name = Path.GetFileName(file.FileName);
             }
 
-            seqLoadedlbl.Text = "Sequence loaded [" + music.Name + "]";
+            updateLabelStatus();
         }
 
         private void openRomToolStripMenuItem_Click(object sender, EventArgs e)
@@ -304,18 +402,13 @@ namespace mlconverter2
                 rom.Path = file.FileName;
                 rom.openRom(new BinaryReader(File.OpenRead(file.FileName)));
 
-                romLoadedlbl.Text = "ROM loaded [" + Path.GetFileName(rom.Path) + "]";
+                updateLabelStatus();
 
                 romViewer = new RomViewer(this);
                 romViewer.Show();
                 romViewer.writeSongList(rom);
 
-                rOMToolStripMenuItem.Enabled = true;
-
-                if (rom.RomFormat == (int)Game.bkgr)
-                {
-                    soundFont.prepairSoundfont(new BinaryReader(new FileStream(rom.Path, FileMode.Open)));
-                }
+                prepareProgram();
             }
         }
 
@@ -342,7 +435,18 @@ namespace mlconverter2
 
         private void mIDIToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-
+            OpenFileDialog file = new OpenFileDialog();
+            file.Filter = "MIDI sequence|*.mid";
+            if (file.ShowDialog() == DialogResult.OK)
+            {
+                DialogResult dr = new DialogResult(); // this way of doing it makes the form a dialogresult?
+                ImportMidi dia = new ImportMidi();
+                dr = dia.ShowDialog();
+                if (dr == DialogResult.OK)
+                {
+                    openFromMidi(file.FileName, dia.format, dia.headerTracksNum);
+                }
+            }
         }
 
         private void exportAllMidiToolStripMenuItem_Click(object sender, EventArgs e)
@@ -355,13 +459,71 @@ namespace mlconverter2
             }
         }
 
-        private void dumpAllSamplesToolStripMenuItem_Click(object sender, EventArgs e)
+        private void soundFontToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FolderBrowserDialog folder = new FolderBrowserDialog();
-            if (folder.ShowDialog() == DialogResult.OK)
+            bkgrSoundfontViewer = new bkgr.SoundfontViewer(rom);
+            bkgrSoundfontViewer.ShowDialog();
+        }
+
+        private void addTrackToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            music.addTrack(new List<List<int>>());
+            setupTracks();
+        }
+
+        private void deleteTrackToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            music.removeTrack();
+            setupTracks();
+        }
+
+        private void insertIntoRomToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DialogResult dr = new DialogResult();
+            mlss.Inserter dia = new mlss.Inserter();
+            showdia:
+            dr = dia.ShowDialog();
+            if (dr == DialogResult.OK)
             {
-                exportAllToSample(folder.SelectedPath);
-                MessageBox.Show("Samples succesfully exported");
+                if (dia.pointer != 0)
+                {
+                    string temp = AppDomain.CurrentDomain.BaseDirectory + "//temp.bin";
+                    music.saveFile(new BinaryWriter(File.OpenWrite(temp)));
+                    if (File.Exists(temp))
+                    {
+                        BinaryReader file = new BinaryReader(new FileStream(AppDomain.CurrentDomain.BaseDirectory + "//temp.bin", FileMode.Open));
+                        byte[] bytes = file.ReadBytes((int)file.BaseStream.Length);
+                        file.Close();
+                        File.Delete(temp);
+                        if (bytes.Length < dia.size)
+                        {
+                            ReplaceData(rom.Path, dia.pointer, bytes);
+                            ReplaceData(rom.Path, 0x21CB70 + (4 * dia.index), BitConverter.GetBytes(dia.pointer + 0x08000000));
+                            MessageBox.Show("Sequence succesfully inserted");
+                        }
+                        else
+                        {
+                            MessageBox.Show("Sequence is too big\nuse custom offset for large sequences");
+                            goto showdia;
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Cannot import at first slot, its used for 'no music'");
+                    goto showdia;
+                }
+            }
+        }
+
+        private void transposeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DialogResult dr = new DialogResult();
+            Transpose dia = new Transpose();
+            dr = dia.ShowDialog();
+            if (dr == DialogResult.OK)
+            {
+                music.transpose(dia.transpose);
             }
         }
     }
