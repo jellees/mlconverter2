@@ -12,28 +12,28 @@ namespace mlconverter2.bkgr
 {
     public partial class SoundfontViewer : Form
     {
-        public SoundfontViewer()
-        {
-            InitializeComponent();
-        }
-
-        public SoundfontViewer(Rom rome)
-        {
-            rom = rome;
-            InitializeComponent();
-            setup();
-        }
-
         // ---- global variables ----
 
         Rom rom;
         SoundfontBKGR soundfont = new SoundfontBKGR();
 
-        // ---- control functions ----
+		public SoundfontViewer()
+		{
+			InitializeComponent();
+		}
 
-        private void setup()
+		public SoundfontViewer(Rom _rom)
+		{
+			rom = _rom;
+			InitializeComponent();
+			setup();
+		}
+
+		// ---- control functions ----
+
+		private void setup()
         {
-            soundfont.prepairSoundfont(new BinaryReader(new FileStream(rom.Path, FileMode.Open)));
+            soundfont.PrepareSoundfont(new BinaryReader(new FileStream(rom.Path, FileMode.Open)), rom.RomFormat);
             for (int i = 0; i < 0x32; i++) instrumentlst.Items.Add("instrument 0x" + i.ToString("X2"));
             instrumentlst.SetSelected(0, true);
             for (int i = 0; i < 0x90; i++) samplelst.Items.Add("sample 0x" + i.ToString("X2"));

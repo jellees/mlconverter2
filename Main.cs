@@ -51,7 +51,7 @@ namespace mlconverter2
             {
                 case ".mls": music.Format = (byte)Format.mls; break;
                 case ".bkg": music.Format = (byte)Format.bkg; break;
-                default: MessageBox.Show("Not supported format"); break;
+                default: MessageBox.Show("Not a supported format"); break;
             }
 
             music.Path = name;
@@ -68,7 +68,7 @@ namespace mlconverter2
             {
                 case (int)Game.mlss: music.Format = (byte)Format.mls; break;
                 case (int)Game.bkgr: music.Format = (byte)Format.bkg; break;
-                default: MessageBox.Show("Not supported format"); break;
+                default: MessageBox.Show("Not a supported format"); break;
             }
             
             rom.ActiveSong = index;
@@ -88,7 +88,7 @@ namespace mlconverter2
             {
                 case (int)Game.mlss: music.Format = (byte)Format.mls; break;
                 case (int)Game.bkgr: music.Format = (byte)Format.bkg; break;
-                default: MessageBox.Show("Not supported format"); break;
+                default: MessageBox.Show("Not a supported format"); break;
             }
 
             music.Path = null;
@@ -109,14 +109,18 @@ namespace mlconverter2
             {
                 case 0x00: eventcmb.Items.AddRange(StaticDataControl.returnEventOptions(0)); break;
                 case 0x01: eventcmb.Items.AddRange(StaticDataControl.returnEventOptions(1)); break;
-                default: MessageBox.Show("no event options for this format!\nthe program will now likely crash"); break;
+                default: MessageBox.Show("No event options for this format!\nThe process is likely unstable now, please restart the program."); break;
             }
             
             // start with track list
             setupTracks();
 
             // setup track
-            setupEvents(0);
+	        if (!setupEvents(0))
+	        {
+				enableControls(false);
+		        return;
+	        }
 
             // setup event 0
             setupEvent(0);
@@ -138,16 +142,26 @@ namespace mlconverter2
         }
 
         // setup a track, Warning: activeEvent is random
-        private void setupEvents(int track)
+        private bool setupEvents(int track)
         {
             eventListbox.Items.Clear();
 
             music.ActiveTrack = track;
-            for (int i = 0; i < music.ActiveTrackCount; i++)
-            {
-                music.ActiveEvent = i;
-                eventListbox.Items.Add(StaticDataControl.returnEventListData(music.Event, music.Format));
-            }
+	        if (music.ActiveTrackCount > 0)
+	        {
+		        for (int i = 0; i < music.ActiveTrackCount; i++)
+		        {
+			        music.ActiveEvent = i;
+			        eventListbox.Items.Add(StaticDataControl.returnEventListData(music.Event, music.Format));
+		        }
+	        }
+	        else
+	        {
+		        MessageBox.Show("The currently selected sequence has no events.");
+		        return false;
+	        }
+
+	        return true;
         }
 
         // set an event
@@ -183,10 +197,10 @@ namespace mlconverter2
 
         private void updateLabelStatus()
         {
-            if (rom.Path == null) romLoadedlbl.Text = "no ROM loaded";
+            if (rom.Path == null) romLoadedlbl.Text = "No ROM loaded";
             else romLoadedlbl.Text = "ROM loaded [" + Path.GetFileName(rom.Path) + "]";
 
-            if (music.Name == null) seqLoadedlbl.Text = "no sequence loaded";
+            if (music.Name == null) seqLoadedlbl.Text = "No sequence loaded";
             else seqLoadedlbl.Text = "Sequence loaded [" + music.Name + "]";
         }
 
@@ -200,19 +214,19 @@ namespace mlconverter2
                     saveFileToolStripMenuItem.Enabled = true;
                     saveFileAsToolStripMenuItem.Enabled = true;
                     exportToolStripMenuItem.Enabled = true;
-                    trackToolStripMenuItem.Enabled = true;
+                    trackMenu.Enabled = true;
                     break;
                 case 0x01:
                     saveFileToolStripMenuItem.Enabled = true;
                     saveFileAsToolStripMenuItem.Enabled = true;
                     exportToolStripMenuItem.Enabled = true;
-                    trackToolStripMenuItem.Enabled = true;
+                    trackMenu.Enabled = true;
                     break;
                 default:
                     saveFileToolStripMenuItem.Enabled = false;
                     saveFileAsToolStripMenuItem.Enabled = false;
                     exportToolStripMenuItem.Enabled = false;
-                    trackToolStripMenuItem.Enabled = false;
+                    trackMenu.Enabled = false;
                     break;
             }
 
@@ -220,19 +234,20 @@ namespace mlconverter2
             switch (rom.RomFormat)
             {
                 case 0x00:
-                    rOMToolStripMenuItem.Enabled = true;
-                    openSequencesListToolStripMenuItem.Enabled = true;
-                    exportAllMidiToolStripMenuItem.Enabled = true;
-                    soundFontToolStripMenuItem.Visible = false;
-                    break;
-                case 0x01:
-                    rOMToolStripMenuItem.Enabled = true;
+                    romMenu.Enabled = true;
                     openSequencesListToolStripMenuItem.Enabled = true;
                     exportAllMidiToolStripMenuItem.Enabled = true;
                     soundFontToolStripMenuItem.Visible = true;
                     break;
+                case 0x01:
+                    romMenu.Enabled = true;
+                    openSequencesListToolStripMenuItem.Enabled = true;
+                    exportAllMidiToolStripMenuItem.Enabled = true;
+                    //soundFontToolStripMenuItem.Visible = true;
+					soundFontToolStripMenuItem.Visible = false;
+					break;
                 default:
-                    rOMToolStripMenuItem.Enabled = false;
+                    romMenu.Enabled = false;
                     break;
             }
 
@@ -249,7 +264,7 @@ namespace mlconverter2
             {
                 case (int)Game.mlss: music.Format = (byte)Format.mls; break;
                 case (int)Game.bkgr: music.Format = (byte)Format.bkg; break;
-                default: MessageBox.Show("Not supported format"); break;
+                default: MessageBox.Show("Not a supported format"); break;
             }
 
             Music backup = music;
@@ -282,7 +297,7 @@ namespace mlconverter2
         private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog file = new OpenFileDialog();
-            file.Filter = "Mario & Luigi SS music format|*.mls|Banjo Kazooie GR music format|*.bkg";
+            file.Filter = "Mario & Luigi SS music format | *.mls | Banjo Kazooie GR music format | *.bkg";
             if (file.ShowDialog() == DialogResult.OK) { openFromFile(file.FileName); }
         }
 
@@ -373,16 +388,16 @@ namespace mlconverter2
 
         private void saveAs()
         {
-            string extention = null;
+            string extension = null;
             switch (music.Format)
             {
-                case (byte)Format.mls: extention = ".mls"; break;
-                case (byte)Format.bkg: extention = ".bkg"; break;
-                default: extention = ".bin"; break;
+                case (byte)Format.mls: extension = ".mls"; break;
+                case (byte)Format.bkg: extension = ".bkg"; break;
+                default: extension = ".bin"; break;
             }
 
             SaveFileDialog file = new SaveFileDialog();
-            file.Filter = "music file|*" + extention;
+            file.Filter = "Music file | *" + extension;
             if (file.ShowDialog() == DialogResult.OK)
             {
                 music.saveFile(new BinaryWriter(File.OpenWrite(file.FileName)));
@@ -396,7 +411,7 @@ namespace mlconverter2
         private void openRomToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog file = new OpenFileDialog();
-            file.Filter = "GBA rom|*.gba";
+            file.Filter = "GBA rom | *.gba";
             if (file.ShowDialog() == DialogResult.OK)
             {
                 rom.Path = file.FileName;
@@ -425,18 +440,18 @@ namespace mlconverter2
         private void mIDIToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveFileDialog file = new SaveFileDialog();
-            file.Filter = "MIDI sequence|*.mid";
+            file.Filter = "MIDI sequence | *.mid";
             if (file.ShowDialog() == DialogResult.OK)
             {
                 music.toMidi(new BinaryWriter(File.OpenWrite(file.FileName)));
-                MessageBox.Show("Midi succesfully exported");
+                MessageBox.Show("MIDI succesfully exported!");
             }
         }
 
         private void mIDIToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             OpenFileDialog file = new OpenFileDialog();
-            file.Filter = "MIDI sequence|*.mid";
+            file.Filter = "MIDI sequence | *.mid";
             if (file.ShowDialog() == DialogResult.OK)
             {
                 DialogResult dr = new DialogResult(); // this way of doing it makes the form a dialogresult?
@@ -455,7 +470,7 @@ namespace mlconverter2
             if (folder.ShowDialog() == DialogResult.OK)
             {
                 exportAllToMidi(folder.SelectedPath);
-                MessageBox.Show("Midis succesfully exported");
+                MessageBox.Show("MIDIs succesfully exported!");
             }
         }
 
@@ -499,18 +514,18 @@ namespace mlconverter2
                         {
                             ReplaceData(rom.Path, dia.pointer, bytes);
                             ReplaceData(rom.Path, 0x21CB70 + (4 * dia.index), BitConverter.GetBytes(dia.pointer + 0x08000000));
-                            MessageBox.Show("Sequence succesfully inserted");
+                            MessageBox.Show("Sequence succesfully inserted!");
                         }
                         else
                         {
-                            MessageBox.Show("Sequence is too big\nuse custom offset for large sequences");
+                            MessageBox.Show("Sequence is too big.\nPlease use a custom offset for large sequences.");
                             goto showdia;
                         }
                     }
                 }
                 else
                 {
-                    MessageBox.Show("Cannot import at first slot, its used for 'no music'");
+                    MessageBox.Show("Cannot import into the first slot, it needs to be empty.");
                     goto showdia;
                 }
             }

@@ -28,7 +28,7 @@ namespace mlconverter2
             for (int i = 0; i < rom.SongCount; i++)
             {
                 rom.ActiveSong = i;
-                songListBox.Items.Add("Sequence 0x" + i.ToString("X2") + "\t0x" + rom.ActivePointer.ToString("X8"));
+                songListBox.Items.Add("Sequence 0x" + i.ToString("X2") + "\t\t0x" + rom.ActivePointer.ToString("X8"));
             }
         }
 

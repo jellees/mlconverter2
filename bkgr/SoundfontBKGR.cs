@@ -35,35 +35,45 @@ namespace mlconverter2.bkgr
 
         // ---- functions ----
 
-        public void prepairSoundfont(BinaryReader file)
+        public void PrepareSoundfont(BinaryReader file, int romFormat)
         {
-            file.BaseStream.Position = 0x006ADE44;
-            instrumentPointers = new int[0x32];
-            for (int i = 0; i < 0x32; i++) instrumentPointers[i] = Common.repairPointer(file.ReadInt32());
+			switch (romFormat)
+			{
+				case 0x00: //Banjo-Kazooie
+					file.BaseStream.Position = 0x006ADE44;
+					instrumentPointers = new int[0x32];
+					for (int i = 0; i < 0x32; i++) instrumentPointers[i] = Common.repairPointer(file.ReadInt32());
 
-            file.BaseStream.Position = 0x006ADF0C;
-            samplePointers = new int[0x90];
-            for (int i = 0; i < 0x90; i++) samplePointers[i] = Common.repairPointer(file.ReadInt32());
+					file.BaseStream.Position = 0x006ADF0C;
+					samplePointers = new int[0x90];
+					for (int i = 0; i < 0x90; i++) samplePointers[i] = Common.repairPointer(file.ReadInt32());
 
-            instrumentDef = new int[0x32][];
+					instrumentDef = new int[0x32][];
 
-            for (int i = 0; i < 0x32; i++ )
-            {
-                instrumentDef[i] = new int[0x44 / 4];
-                file.BaseStream.Position = instrumentPointers[i];
+					for (int i = 0; i < 0x32; i++)
+					{
+						instrumentDef[i] = new int[0x44 / 4];
+						file.BaseStream.Position = instrumentPointers[i];
 
-                for (int j = 0; j < 0x44 / 4; j++) instrumentDef[i][j] = file.ReadInt32();
-            }
+						for (int j = 0; j < 0x44 / 4; j++) instrumentDef[i][j] = file.ReadInt32();
+					}
 
-            sampleDef = new int[0x90][];
+					sampleDef = new int[0x90][];
 
-            for (int i = 0; i < 0x90; i++)
-            {
-                sampleDef[i] = new int[0x44 / 4];
-                file.BaseStream.Position = samplePointers[i];
-                
-                for (int j = 0; j < 0x44 / 4; j++) sampleDef[i][j] = file.ReadInt32();
-            }
+					for (int i = 0; i < 0x90; i++)
+					{
+						sampleDef[i] = new int[0x44 / 4];
+						file.BaseStream.Position = samplePointers[i];
+
+						for (int j = 0; j < 0x44 / 4; j++) sampleDef[i][j] = file.ReadInt32();
+					}
+					break;
+
+				case 0x01: //Superstar Saga
+					file.BaseStream.Position = 0x0819A644;
+					
+					break;
+			}
 
             file.Close();
         }
