@@ -26,7 +26,7 @@ namespace mlconverter2
         bool updateCmb = true;
 
         RomViewer romViewer;
-        bkgr.SoundfontViewer bkgrSoundfontViewer;
+        soundfonts.SoundfontViewer soundfontViewer;
         
         // ---- control functions ----
 
@@ -243,8 +243,8 @@ namespace mlconverter2
                     romMenu.Enabled = true;
                     openSequencesListToolStripMenuItem.Enabled = true;
                     exportAllMidiToolStripMenuItem.Enabled = true;
-                    //soundFontToolStripMenuItem.Visible = true;
-					soundFontToolStripMenuItem.Visible = false;
+                    soundFontToolStripMenuItem.Visible = true;
+					//soundFontToolStripMenuItem.Visible = false;
 					break;
                 default:
                     romMenu.Enabled = false;
@@ -476,8 +476,8 @@ namespace mlconverter2
 
         private void soundFontToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            bkgrSoundfontViewer = new bkgr.SoundfontViewer(rom);
-            bkgrSoundfontViewer.ShowDialog();
+            soundfontViewer = new soundfonts.SoundfontViewer(rom);
+            soundfontViewer.ShowDialog();
         }
 
         private void addTrackToolStripMenuItem_Click(object sender, EventArgs e)

@@ -40,6 +40,7 @@
 			this.songListBox.Name = "songListBox";
 			this.songListBox.Size = new System.Drawing.Size(264, 261);
 			this.songListBox.TabIndex = 0;
+			this.songListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.songListBox_KeyDown);
 			this.songListBox.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.songListBox_MouseDoubleClick);
 			// 
 			// RomViewer

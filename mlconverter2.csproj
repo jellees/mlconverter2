@@ -79,11 +79,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="bkgr\SoundfontBKGR.cs" />
-    <Compile Include="bkgr\SoundfontViewer.cs">
+    <Compile Include="soundfonts\Soundfont.cs" />
+    <Compile Include="soundfonts\SoundfontViewer.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="bkgr\SoundfontViewer.Designer.cs">
+    <Compile Include="soundfonts\SoundfontViewer.Designer.cs">
       <DependentUpon>SoundfontViewer.cs</DependentUpon>
     </Compile>
     <Compile Include="Common.cs" />
@@ -124,7 +124,7 @@
     <Compile Include="Transpose.Designer.cs">
       <DependentUpon>Transpose.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="bkgr\SoundfontViewer.resx">
+    <EmbeddedResource Include="soundfonts\SoundfontViewer.resx">
       <DependentUpon>SoundfontViewer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ImportMidi.resx">

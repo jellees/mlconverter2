@@ -34,7 +34,21 @@ namespace mlconverter2
 
         private void songListBox_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            this.mainForm.openFromRom(songListBox.SelectedIndex);
+            confirmAndClose();
         }
-    }
+
+		private void songListBox_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Enter)
+			{
+				confirmAndClose();
+			}
+		}
+
+	    private void confirmAndClose()
+	    {
+			this.mainForm.openFromRom(songListBox.SelectedIndex);
+			this.Close();
+		}
+	}
 }
