@@ -28,13 +28,27 @@ namespace mlconverter2
             for (int i = 0; i < rom.SongCount; i++)
             {
                 rom.ActiveSong = i;
-                songListBox.Items.Add("Sequence 0x" + i.ToString("X2") + "\t0x" + rom.ActivePointer.ToString("X8"));
+                songListBox.Items.Add("Sequence 0x" + i.ToString("X2") + "\t\t0x" + rom.ActivePointer.ToString("X8"));
             }
         }
 
         private void songListBox_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            this.mainForm.openFromRom(songListBox.SelectedIndex);
+            confirmAndClose();
         }
-    }
+
+		private void songListBox_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Enter)
+			{
+				confirmAndClose();
+			}
+		}
+
+	    private void confirmAndClose()
+	    {
+			this.mainForm.openFromRom(songListBox.SelectedIndex);
+			this.Close();
+		}
+	}
 }

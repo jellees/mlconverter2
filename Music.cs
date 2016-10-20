@@ -44,7 +44,17 @@ namespace mlconverter2
 
         public int ActiveTrackCount
         {
-            get { return events[activeTrack].Count; }
+	        get
+	        {
+		        if (events.Count > 0)
+		        {
+			        return events[activeTrack].Count;
+		        }
+		        else
+		        {
+			        return 0;
+		        }
+	        }
         }
 
         public byte Format
