@@ -68,6 +68,8 @@ namespace mlconverter2
             {
                 case (int)Game.mlss: music.Format = (byte)Format.mls; break;
                 case (int)Game.bkgr: music.Format = (byte)Format.bkg; break;
+                case (int)Game.bapi: music.Format = (byte)Format.bkg; break;
+                case (int)Game.icag: music.Format = (byte)Format.ice; break;
                 default: MessageBox.Show("Not supported format"); break;
             }
             
@@ -82,18 +84,20 @@ namespace mlconverter2
             setupMusic();
         }
 
-        private void openFromMidi(string name, int format, int headerTracks)
+        private void openFromMidi(string name, int format, int headerTracks, bool normalisation, bool loop, int loopformat)
         {
             switch (format)
             {
                 case (int)Game.mlss: music.Format = (byte)Format.mls; break;
                 case (int)Game.bkgr: music.Format = (byte)Format.bkg; break;
+                case (int)Game.bapi: music.Format = (byte)Format.bkg; break;
+                case (int)Game.icag: music.Format = (byte)Format.ice; break;
                 default: MessageBox.Show("Not supported format"); break;
             }
 
             music.Path = null;
             music.Name = Path.GetFileName(name);
-            music.fromMidi(new BinaryReader(new FileStream(name, FileMode.Open)), headerTracks);
+            music.fromMidi(new BinaryReader(new FileStream(name, FileMode.Open)), headerTracks, normalisation, loop, loopformat);
 
             setupMusic();
         }
@@ -219,17 +223,23 @@ namespace mlconverter2
             // prepare ROM tab
             switch (rom.RomFormat)
             {
-                case 0x00:
+                case (int)Game.mlss:
                     rOMToolStripMenuItem.Enabled = true;
                     openSequencesListToolStripMenuItem.Enabled = true;
                     exportAllMidiToolStripMenuItem.Enabled = true;
                     soundFontToolStripMenuItem.Visible = false;
                     break;
-                case 0x01:
+                case (int)Game.bkgr:
                     rOMToolStripMenuItem.Enabled = true;
                     openSequencesListToolStripMenuItem.Enabled = true;
                     exportAllMidiToolStripMenuItem.Enabled = true;
                     soundFontToolStripMenuItem.Visible = true;
+                    break;
+                case (int)Game.bapi:
+                    rOMToolStripMenuItem.Enabled = true;
+                    openSequencesListToolStripMenuItem.Enabled = true;
+                    exportAllMidiToolStripMenuItem.Enabled = true;
+                    soundFontToolStripMenuItem.Visible = false;
                     break;
                 default:
                     rOMToolStripMenuItem.Enabled = false;
@@ -249,6 +259,7 @@ namespace mlconverter2
             {
                 case (int)Game.mlss: music.Format = (byte)Format.mls; break;
                 case (int)Game.bkgr: music.Format = (byte)Format.bkg; break;
+                case (int)Game.bapi: music.Format = (byte)Format.bkg; break;
                 default: MessageBox.Show("Not supported format"); break;
             }
 
@@ -444,7 +455,7 @@ namespace mlconverter2
                 dr = dia.ShowDialog();
                 if (dr == DialogResult.OK)
                 {
-                    openFromMidi(file.FileName, dia.format, dia.headerTracksNum);
+                    openFromMidi(file.FileName, dia.format, dia.headerTracksNum, dia.normalisation, dia.loop, dia.loopFormat);
                 }
             }
         }
@@ -524,6 +535,7 @@ namespace mlconverter2
             if (dr == DialogResult.OK)
             {
                 music.transpose(dia.transpose);
+                setupEvents(music.ActiveTrack);
             }
         }
     }

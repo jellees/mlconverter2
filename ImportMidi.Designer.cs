@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
@@ -35,6 +36,10 @@
             this.label3 = new System.Windows.Forms.Label();
             this.OKbtn = new System.Windows.Forms.Button();
             this.cancelbtn = new System.Windows.Forms.Button();
+            this.normchk = new System.Windows.Forms.CheckBox();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.loopchk = new System.Windows.Forms.CheckBox();
+            this.loopForm = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -91,7 +96,7 @@
             // OKbtn
             // 
             this.OKbtn.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.OKbtn.Location = new System.Drawing.Point(12, 68);
+            this.OKbtn.Location = new System.Drawing.Point(12, 96);
             this.OKbtn.Name = "OKbtn";
             this.OKbtn.Size = new System.Drawing.Size(171, 23);
             this.OKbtn.TabIndex = 5;
@@ -101,19 +106,60 @@
             // cancelbtn
             // 
             this.cancelbtn.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancelbtn.Location = new System.Drawing.Point(189, 68);
+            this.cancelbtn.Location = new System.Drawing.Point(189, 96);
             this.cancelbtn.Name = "cancelbtn";
             this.cancelbtn.Size = new System.Drawing.Size(160, 23);
             this.cancelbtn.TabIndex = 6;
             this.cancelbtn.Text = "Cancel";
             this.cancelbtn.UseVisualStyleBackColor = true;
             // 
+            // normchk
+            // 
+            this.normchk.AutoSize = true;
+            this.normchk.Location = new System.Drawing.Point(15, 73);
+            this.normchk.Name = "normchk";
+            this.normchk.Size = new System.Drawing.Size(130, 17);
+            this.normchk.TabIndex = 7;
+            this.normchk.Text = "Normalisation of notes";
+            this.toolTip1.SetToolTip(this.normchk, "Instead of ignoring less important notes,\r\nthis will cut off the overlapping note" +
+                    "\r\nand start with the newer one.\r\n\r\n(This option may ruin everything)");
+            this.normchk.UseVisualStyleBackColor = true;
+            this.normchk.CheckedChanged += new System.EventHandler(this.normchk_CheckedChanged);
+            // 
+            // loopchk
+            // 
+            this.loopchk.AutoSize = true;
+            this.loopchk.Location = new System.Drawing.Point(151, 73);
+            this.loopchk.Name = "loopchk";
+            this.loopchk.Size = new System.Drawing.Size(46, 17);
+            this.loopchk.TabIndex = 8;
+            this.loopchk.Text = "loop";
+            this.loopchk.UseVisualStyleBackColor = true;
+            this.loopchk.CheckedChanged += new System.EventHandler(this.loopchk_CheckedChanged);
+            // 
+            // loopForm
+            // 
+            this.loopForm.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.loopForm.Enabled = false;
+            this.loopForm.FormattingEnabled = true;
+            this.loopForm.Items.AddRange(new object[] {
+            "from start",
+            "from loop point"});
+            this.loopForm.Location = new System.Drawing.Point(203, 69);
+            this.loopForm.Name = "loopForm";
+            this.loopForm.Size = new System.Drawing.Size(146, 21);
+            this.loopForm.TabIndex = 9;
+            this.loopForm.SelectedIndexChanged += new System.EventHandler(this.loopForm_SelectedIndexChanged);
+            // 
             // ImportMidi
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelbtn;
-            this.ClientSize = new System.Drawing.Size(361, 100);
+            this.ClientSize = new System.Drawing.Size(361, 128);
+            this.Controls.Add(this.loopForm);
+            this.Controls.Add(this.loopchk);
+            this.Controls.Add(this.normchk);
             this.Controls.Add(this.cancelbtn);
             this.Controls.Add(this.OKbtn);
             this.Controls.Add(this.label3);
@@ -139,5 +185,9 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button OKbtn;
         private System.Windows.Forms.Button cancelbtn;
+        private System.Windows.Forms.CheckBox normchk;
+        private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.CheckBox loopchk;
+        private System.Windows.Forms.ComboBox loopForm;
     }
 }

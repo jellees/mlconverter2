@@ -489,13 +489,13 @@ namespace mlconverter2
 
         #region import from midi functions
 
-        public void fromMidi(BinaryReader file, int headerTracks)
+        public void fromMidi(BinaryReader file, int headerTracks, bool normalisation, bool loop, int loopformat)
         {
             if (format == 0xff) throw new ArgumentException("A format is not specified.", "format");
 
             switch (this.format)
             {
-                case 0x00: fromMidiMls(file, headerTracks); break;
+                case 0x00: fromMidiMls(file, headerTracks, normalisation, loop, loopformat); break;
                 case 0x01: fromMidiBkg(file, headerTracks); break;
                 default: break;
             }
@@ -503,7 +503,7 @@ namespace mlconverter2
             file.Close();
         }
 
-        private void fromMidiMls(BinaryReader file, int headerTracks)
+        private void fromMidiMls(BinaryReader file, int headerTracks, bool normalisation, bool loop, int loopformat)
         {
             events = new List<List<List<int>>>();
             MIDI mid = new MIDI(file);
@@ -536,15 +536,20 @@ namespace mlconverter2
             {
                 int pos = i - headerTracks;
                 mid.TrackPosition = i;
+
                 events.Add(new List<List<int>>());
+
                 bool endOfTrack = false;
                 int[] status;
+
                 int rest = 0;
                 int note = 0;
                 int noteLength = 0;
-                int noteVolume = 0;
-                int trkVolume = 0;
+                decimal noteVolume = 0;
+                decimal trackVolume = 0x7F; // this is the standard for each midi, if the volume isn't specified
                 int volume = 0;
+
+                int loopStart = 0;
 
                 // always first the tempo to play safe
                 if (tempo == 0) events[pos].Add(new List<int> { 0xF9, 0x78 });
@@ -552,7 +557,8 @@ namespace mlconverter2
 
                 while (!endOfTrack)
                 {
-                    rest = mid.read()[0] / (mid.Devision / 0x28);
+                    // ---------- read rest ----------
+                    rest = Convert.ToInt32(Convert.ToDecimal(mid.read()[0]) / (Convert.ToDecimal(mid.Devision) / 0x30));
 
                     if (note != 0) noteLength += rest;
                     if (rest != 0 && note == 0)
@@ -560,36 +566,86 @@ namespace mlconverter2
                             if (rest > 0x90) { events[pos].Add(new List<int> { 0xF6, 0x90 }); rest -= 0x90; }
                             else { events[pos].Add(new List<int> { 0xF6, rest }); rest = 0; break; }
 
+                    // ---------- read event ----------
                     status = mid.read();
 
                     switch (status[0] & 0xF0)
                     {
-                        case 0x90: if (note == 0) { note = status[1]; noteLength = 0; } // note on
-                                else if (status[2] == 0) goto noteOff;
-                                break;
-                        case 0x80: noteOff: 
-                                    if (note == status[1])   // note off
+                        case 0x90:                                                                      // note on
+                            if (status[1] == 0x7F) loopStart = events[pos].Count;//first look for a loop
+                            else if (note == 0)
+                            {
+                                note = status[1];
+                                noteVolume = status[2];
+                                noteLength = 0;
+                            }
+                            // quick and dirty solution on note normalisation
+                            // notice that you cannot normalize a note when the length = 0, thus more notes starting at the same time
+                            // this will end up with 0 length notes and will eventually lead to a crash
+                            // because 0 length notes are read as extended notes
+                            else if (normalisation && noteLength != 0)
+                            {
+                                // write volume changes
+                                int newVolume = Convert.ToInt32(trackVolume / 100 * (noteVolume / 0x7F * 100)) * 2;
+                                if (volume != newVolume)
+                                {
+                                    volume = newVolume;
+                                    events[pos].Add(new List<int> { 0xF1, volume });
+                                }
+
+                                // write note/notes
+                                while (true)
+                                    if (noteLength > 0x90) { events[pos].Add(new List<int> { 0x00, note + 0x80, 0x90 }); noteLength -= 0x90; }
+                                    else { events[pos].Add(new List<int> { noteLength, note }); break; }
+
+                                // setup new note
+                                note = status[1];
+                                noteVolume = status[2];
+                                noteLength = 0;
+                            }
+                            break;
+
+                        case 0x80:
+                                if (note == status[1] && noteLength != 0)                                                      // note off
+                                {
+                                    // write volume changes
+                                    int newVolume = Convert.ToInt32(trackVolume / 100 * (noteVolume / 0x7F * 100)) * 2;
+                                    if (volume != newVolume)
                                     {
-                                        // write volume changes
-                                        noteVolume = status[2];
-                                        int newVolume = (noteVolume + trkVolume) / 2;
-                                        if (volume != newVolume)
-                                        {
-                                            volume = newVolume;
-                                            events[pos].Add(new List<int> { 0xF1, volume });
-                                        }
-                                        
-                                        // write note/notes
-                                        while (true)
-                                            if (noteLength > 0x90) { events[pos].Add(new List<int> { 0x00, note + 0x80, 0x90 }); noteLength -= 0x90; }
-                                            else { events[pos].Add(new List<int> { noteLength, note }); break; }
-                                        note = 0;
-                                    } break;
-                        case 0xB0: if (status[1] == 0x07) trkVolume = status[2]; break; // channel volume
-                        case 0xC0: events[pos].Add(new List<int> { 0xF0, status[1] }); break;
-                        case 0xF0: if (status[1] == 0x2F) { events[pos].Add(new List<int> { 0xFF }); endOfTrack = true; }  // end of track
-                                    else if (status[1] == 0x51) events[pos].Add(new List<int> { 0xF9, (60000000 / ((status[3] << 16) + (status[4] << 8) + (status[5])))});
-                                    break;
+                                        volume = newVolume;
+                                        events[pos].Add(new List<int> { 0xF1, volume });
+                                    }
+
+                                    // write note/notes
+                                    while (true)
+                                        if (noteLength > 0x90) { events[pos].Add(new List<int> { 0x00, note + 0x80, 0x90 }); noteLength -= 0x90; }
+                                        else { events[pos].Add(new List<int> { noteLength, note }); break; }
+                                    
+                                    // this note has been done, clear note to read next note
+                                    note = 0;
+                                }
+                                break;
+
+                        case 0xB0: if (status[1] == 0x07) trackVolume = status[2]; break;                   // channel volume
+
+                        case 0xC0: events[pos].Add(new List<int> { 0xF0, status[1] }); break;               // instrument
+
+                        case 0xF0:
+                                if (status[1] == 0x2F)                                                      // end of track
+                                {
+                                    if (loop)
+                                    {
+                                        if (loopformat == 0) loopStart = 0;
+                                        events[pos].Add(new List<int> { 0xF8, (0xFFFF - Common.giveByteCount(events[pos], loopStart)) }); 
+                                        endOfTrack = true;
+                                    }
+                                    else events[pos].Add(new List<int> { 0xFF }); endOfTrack = true;
+                                }
+                                else if (status[1] == 0x51)                                                 // volume
+                                {
+                                    events[pos].Add(new List<int> { 0xF9, (60000000 / ((status[3] << 16) + (status[4] << 8) + (status[5]))) });
+                                }
+                                break;
                     }
                 }
             }
@@ -666,7 +722,7 @@ namespace mlconverter2
                 {
                     int test = events[activeTrack][i][1];
                     test = test + trans;
-                    if (test == 0 || test >= 0xF0)
+                    if (test <= 0 || test >= 0xF0)
                     {
                         testResult = false;
                         break;

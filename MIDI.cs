@@ -93,6 +93,7 @@ namespace mlconverter2
                             case 0x90:  // note on
                                 events[i][pos].Add(file.ReadByte());
                                 events[i][pos].Add(file.ReadByte());
+                                if (events[i][pos][2] == 0) events[i][pos][0] -= 0x10; // its a note off
                                 break;
                             case 0xA0:  // polyphonic aftertouch IGNORE
                                 events[i][pos].Add(file.ReadByte());

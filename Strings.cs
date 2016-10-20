@@ -9,7 +9,8 @@ namespace mlconverter2
     public enum Format : int
     {
         mls,
-        bkg
+        bkg,
+        ice
     }
 
     public class StaticDataControl
@@ -180,6 +181,8 @@ namespace mlconverter2
     public enum Game : int
     {
         mlss,
-        bkgr
+        bkgr,
+        bapi,
+        icag
     }
 }

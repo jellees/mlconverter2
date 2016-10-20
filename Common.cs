@@ -48,7 +48,7 @@ namespace mlconverter2
         {
             pointer <<= 8;
             pointer >>= 8;
-            return Math.Abs(pointer);
+            return pointer & 0x00FFFFFF;
         }
 
         /// <summary>
@@ -106,6 +106,22 @@ namespace mlconverter2
             }
 
             return delta;
+        }
+
+        /// <summary>
+        /// gives how much bytes are used
+        /// </summary>
+        static public int giveByteCount(List<List<int>> list, int start)
+        {
+            int ret = 0;
+
+            for (int i = start; i < list.Count; i++)
+            {
+                if (list[i][0] == 0) ret += 3;
+                else ret += 2;
+            }
+
+            return ret;
         }
     }
 }

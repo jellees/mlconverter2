@@ -5,11 +5,7 @@
 
 ---- features to add ----
 
-- track - transpose all notes
 - track - find event
-- ROM - mls - insert into rom
-- import - import from midi to mls
-- import - import from midi to bkg
 
 ---- research stuff ----
 

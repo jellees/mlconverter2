@@ -60,6 +60,8 @@ namespace mlconverter2
             {
                 case "MARIO&LUIGIUA88E01": this.romFormat = (int)Game.mlss; this.songCount = 0x33; this.pointersPointer = 0x21CB70; break;
                 case "BANJOKAZOOIEBKZE78": this.romFormat = (int)Game.bkgr; this.songCount = 0x12; this.pointersPointer = 0x6AE150; break;
+                case "BANJO PILOT\0BAJE78": this.romFormat = (int)Game.bapi; this.songCount = 0x22; this.pointersPointer = 0xB46E6C; break;
+                case "ICE AGE 2 THBIAP7D": this.romFormat = (int)Game.icag; this.songCount = 0x1C; this.pointersPointer = 0xE633D4; break;
             }
 
             pointers = new int[songCount];

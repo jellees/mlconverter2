@@ -36,7 +36,7 @@ namespace mlconverter2.bkgr
             soundfont.prepairSoundfont(new BinaryReader(new FileStream(rom.Path, FileMode.Open)));
             for (int i = 0; i < 0x32; i++) instrumentlst.Items.Add("instrument 0x" + i.ToString("X2"));
             instrumentlst.SetSelected(0, true);
-            for (int i = 0; i < 0x90; i++) samplelst.Items.Add("sample 0x" + i.ToString("X2"));
+            for (int i = 0; i < 0x91; i++) samplelst.Items.Add("sample 0x" + i.ToString("X2"));
             samplelst.SetSelected(0, true);
 
             setupSample(0);

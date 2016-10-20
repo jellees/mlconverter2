@@ -42,8 +42,8 @@ namespace mlconverter2.bkgr
             for (int i = 0; i < 0x32; i++) instrumentPointers[i] = Common.repairPointer(file.ReadInt32());
 
             file.BaseStream.Position = 0x006ADF0C;
-            samplePointers = new int[0x90];
-            for (int i = 0; i < 0x90; i++) samplePointers[i] = Common.repairPointer(file.ReadInt32());
+            samplePointers = new int[0x91];
+            for (int i = 0; i < 0x91; i++) samplePointers[i] = Common.repairPointer(file.ReadInt32());
 
             instrumentDef = new int[0x32][];
 
@@ -55,9 +55,9 @@ namespace mlconverter2.bkgr
                 for (int j = 0; j < 0x44 / 4; j++) instrumentDef[i][j] = file.ReadInt32();
             }
 
-            sampleDef = new int[0x90][];
+            sampleDef = new int[0x91][];
 
-            for (int i = 0; i < 0x90; i++)
+            for (int i = 0; i < 0x91; i++)
             {
                 sampleDef[i] = new int[0x44 / 4];
                 file.BaseStream.Position = samplePointers[i];
